@@ -224,6 +224,10 @@ namespace FastColoredTextBoxNS
 
         internal bool AllowTabKey { get; set; }
         /// <summary>
+        /// Set to true to use solid brush for selected item. Default is a linear gradient from SelectedColor to a transparent.
+        /// </summary>
+        public bool UseSolidBrushForSelected { get; set; }
+        /// <summary>
         /// Set to false to disable wrapping up/down navigation. If false, user can't navigate from last item to first and back. Default is true.
         /// </summary>
         public bool DisableWrappingUpDownNavigation { get; set; }
@@ -545,7 +549,8 @@ namespace FastColoredTextBoxNS
                     e.Graphics.DrawImage(ImageList.Images[item.ImageIndex], 1, y);
 
                 if (i == FocussedItemIndex)
-                using (var selectedBrush = new LinearGradientBrush(new Point(0, y - 3), new Point(0, y + itemHeight), Color.Transparent, SelectedColor))
+                    using (var selectedBrush = UseSolidBrushForSelected ? (Brush)new SolidBrush(SelectedColor) 
+                               : new LinearGradientBrush(new Point(0, y - 3), new Point(0, y + itemHeight), Color.Transparent, SelectedColor))
                 using (var pen = new Pen(SelectedColor))
                 {
                     e.Graphics.FillRectangle(selectedBrush, leftPadding, y, ClientSize.Width - 1 - leftPadding, itemHeight - 1);
