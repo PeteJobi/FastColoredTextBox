@@ -125,7 +125,9 @@ namespace FastColoredTextBoxNS
         private int reservedCountOfLineNumberChars = 1;
         private int zoom = 100;
         private Size localAutoScrollMinSize;
- 
+        private bool mouseIsWholeWordSelection;
+        private Range mouseIsWholeWordSelectionBaseRange;
+
         /// <summary>
         /// Constructor
         /// </summary>
@@ -5481,6 +5483,7 @@ namespace FastColoredTextBoxNS
         {
             base.OnEnter(e);
             mouseIsDrag = false;
+            mouseIsWholeWordSelection = false;
             mouseIsDragDrop = false;
             draggedRange = null;
         }
@@ -5505,7 +5508,8 @@ namespace FastColoredTextBoxNS
             {
                 DeactivateMiddleClickScrollingMode();
                 mouseIsDrag = false;
-                if(e.Button == System.Windows.Forms.MouseButtons.Middle)
+                mouseIsWholeWordSelection = false;
+                if (e.Button == System.Windows.Forms.MouseButtons.Middle)
                     RestoreScrollsAfterMiddleClickScrollingMode();
                 return;
             }
@@ -5522,6 +5526,7 @@ namespace FastColoredTextBoxNS
                 if (marker != null)
                 {
                     mouseIsDrag = false;
+                    mouseIsWholeWordSelection = false;
                     mouseIsDragDrop = false;
                     draggedRange = null;
                     OnMarkerClick(e, marker);
@@ -5539,11 +5544,11 @@ namespace FastColoredTextBoxNS
 
                     if (e.Clicks == 2)
                     {
-                        mouseIsDrag = false;
                         mouseIsDragDrop = false;
-                        draggedRange = null;
+                        mouseIsWholeWordSelection = true;
 
                         SelectWord(p);
+                        mouseIsWholeWordSelectionBaseRange = Selection.Clone();
                         return;
                     }
 
@@ -5553,6 +5558,7 @@ namespace FastColoredTextBoxNS
                     {
                         mouseIsDragDrop = true;
                         mouseIsDrag = false;
+                        mouseIsWholeWordSelection = false;
                     }
                 }
                 else
@@ -5819,19 +5825,43 @@ namespace FastColoredTextBoxNS
                 }
                 else if (place != Selection.Start)
                 {
-                    Place oldEnd = Selection.End;
-                    Selection.BeginUpdate();
-                    if (Selection.ColumnSelectionMode)
+                    if (mouseIsWholeWordSelection)
                     {
-                        Selection.Start = place;
-                        Selection.ColumnSelectionMode = true;
+                        Selection.BeginUpdate();
+                        var oldSelection = Selection.Clone();
+                        SelectWord(place);
+
+                        if (Selection.End >= mouseIsWholeWordSelectionBaseRange.End)
+                        {
+                            Selection.Start = (mouseIsWholeWordSelectionBaseRange.Start > Selection.Start) ? mouseIsWholeWordSelectionBaseRange.Start : Selection.Start;
+                            Selection.End = mouseIsWholeWordSelectionBaseRange.End;
+                        }
+                        else if (Selection.Start < mouseIsWholeWordSelectionBaseRange.End)
+                        {
+                            Selection.Start = new Place(Selection.End.iChar, Selection.End.iLine);
+                            Selection.End = mouseIsWholeWordSelectionBaseRange.Start;
+                        }
+
+                        Selection.EndUpdate();
+                        DoCaretVisible();
+                        Invalidate();
                     }
                     else
-                        Selection.Start = place;
-                    Selection.End = oldEnd;
-                    Selection.EndUpdate();
-                    DoCaretVisible();
-                    Invalidate();
+                    {
+                        Place oldEnd = Selection.End;
+                        Selection.BeginUpdate();
+                        if (Selection.ColumnSelectionMode)
+                        {
+                            Selection.Start = place;
+                            Selection.ColumnSelectionMode = true;
+                        }
+                        else
+                            Selection.Start = place;
+                        Selection.End = oldEnd;
+                        Selection.EndUpdate();
+                        DoCaretVisible();
+                        Invalidate();
+                    }
                     return;
                 }
             }
