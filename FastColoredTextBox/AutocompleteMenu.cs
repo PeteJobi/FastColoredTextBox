@@ -229,6 +229,9 @@ namespace FastColoredTextBoxNS
         public bool DisableWrappingUpDownNavigation { get; set; }
         public ImageList ImageList { get; set; }
         internal int AppearInterval { get { return timer.Interval; } set { timer.Interval = value; } }
+        /// <summary>
+        /// The duration of tooltip showing in milliseconds. Set to 0 to show tooltip indefinitely.
+        /// </summary>
         internal int ToolTipDuration { get; set; }
         internal Size MaxToolTipSize { get; set; }
         internal bool AlwaysShowTooltip
@@ -761,12 +764,14 @@ namespace FastColoredTextBoxNS
                 if (string.IsNullOrEmpty(text))
                 {
                     toolTip.ToolTipTitle = null;
-                    toolTip.Show(title, window, location.X, location.Y, ToolTipDuration);
+                    if(ToolTipDuration > 0) toolTip.Show(title, window, location.X, location.Y, ToolTipDuration);
+                    else toolTip.Show(title, window, location.X, location.Y);
                 }
                 else
                 {
                     toolTip.ToolTipTitle = title;
-                    toolTip.Show(text, window, location.X, location.Y, ToolTipDuration);
+                    if(ToolTipDuration > 0) toolTip.Show(text, window, location.X, location.Y, ToolTipDuration);
+                    else toolTip.Show(text, window, location.X, location.Y);
                 }
             }
         }
