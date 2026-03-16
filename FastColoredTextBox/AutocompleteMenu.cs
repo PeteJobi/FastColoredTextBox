@@ -232,6 +232,10 @@ namespace FastColoredTextBoxNS
         /// </summary>
         public bool UseSolidBrushForSelected { get; set; }
         /// <summary>
+        /// Set to true to show menu again after an item is selected.
+        /// </summary>
+        public bool ReShowMenuAfterSelected { get; set; }
+        /// <summary>
         /// Set to false to disable wrapping up/down navigation. If false, user can't navigate from last item to first and back. Default is true.
         /// </summary>
         public bool DisableWrappingUpDownNavigation { get; set; }
@@ -626,6 +630,7 @@ namespace FastColoredTextBoxNS
                 }
 
                 Menu.Close();
+                if(ReShowMenuAfterSelected) ResetTimer(timer);
                 //
                 SelectedEventArgs args2 = new SelectedEventArgs()
                 {
