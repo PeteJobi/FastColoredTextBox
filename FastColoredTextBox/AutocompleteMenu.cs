@@ -4,6 +4,8 @@ using System.Windows.Forms;
 using System.Drawing;
 using System.ComponentModel;
 using System.Drawing.Drawing2D;
+using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 
 namespace FastColoredTextBoxNS
@@ -265,7 +267,18 @@ namespace FastColoredTextBoxNS
         /// The duration of tooltip showing in milliseconds. Set to 0 to show tooltip indefinitely.
         /// </summary>
         internal int ToolTipDuration { get; set; }
-        internal Size MaxToolTipSize { get; set; }
+
+        private Size maxToolTipSize;
+        internal Size MaxToolTipSize
+        {
+            get => maxToolTipSize;
+            set
+            {
+                maxToolTipSize = value;
+                SetTooltipMaxWidth();
+            }
+        }
+
         internal bool AlwaysShowTooltip
         {
             get { return toolTip.ShowAlways; }
@@ -348,10 +361,23 @@ namespace FastColoredTextBoxNS
             };
         }
 
+        private const uint TTM_SETMAXTIPWIDTH = 0x418;
+        [DllImport("user32.dll")]
+        private static extern int SendMessage(IntPtr hwnd, uint msg,
+            int wParam, int lParam);
+        private void SetTooltipMaxWidth()
+        {
+            var o = typeof(ToolTip).InvokeMember("Handle",
+                BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.GetProperty,
+                null, toolTip, null);
+            var hwnd = (IntPtr)o;
+            SendMessage(hwnd, TTM_SETMAXTIPWIDTH, 0, MaxToolTipSize.Width);
+        }
+
         private void ToolTip_Popup(object sender, PopupEventArgs e)
         {
-            if (MaxToolTipSize.Height > 0 && MaxToolTipSize.Width > 0)
-                e.ToolTipSize = MaxToolTipSize;
+            if (MaxToolTipSize.Height > 0)
+                e.ToolTipSize = new Size(e.ToolTipSize.Width, Math.Min(e.ToolTipSize.Height, MaxToolTipSize.Height));
         }
 
         protected override void Dispose(bool disposing)
@@ -573,8 +599,8 @@ namespace FastColoredTextBoxNS
                 var item = visibleItems[i];
 
                 if(item.BackColor != Color.Transparent)
-                using (var brush = new SolidBrush(item.BackColor))
-                    e.Graphics.FillRectangle(brush, 1, y, ClientSize.Width - 1 - 1, itemHeight - 1);
+                    using (var brush = new SolidBrush(item.BackColor))
+                        e.Graphics.FillRectangle(brush, 1, y, ClientSize.Width - 1 - 1, itemHeight - 1);
 
                 if (ImageList != null && visibleItems[i].ImageIndex >= 0)
                     e.Graphics.DrawImage(ImageList.Images[item.ImageIndex], 1, y);
@@ -582,15 +608,15 @@ namespace FastColoredTextBoxNS
                 if (i == FocussedItemIndex)
                     using (var selectedBrush = UseSolidBrushForSelected ? (Brush)new SolidBrush(SelectedColor) 
                                : new LinearGradientBrush(new Point(0, y - 3), new Point(0, y + itemHeight), Color.Transparent, SelectedColor))
-                using (var pen = new Pen(SelectedColor))
-                {
-                    e.Graphics.FillRectangle(selectedBrush, leftPadding, y, ClientSize.Width - 1 - leftPadding, itemHeight - 1);
-                    e.Graphics.DrawRectangle(pen, leftPadding, y, ClientSize.Width - 1 - leftPadding, itemHeight - 1);
-                }
+                    using (var pen = new Pen(SelectedColor))
+                    {
+                        e.Graphics.FillRectangle(selectedBrush, leftPadding, y, ClientSize.Width - 1 - leftPadding, itemHeight - 1);
+                        e.Graphics.DrawRectangle(pen, leftPadding, y, ClientSize.Width - 1 - leftPadding, itemHeight - 1);
+                    }
 
                 if (i == hoveredItemIndex)
-                using(var pen = new Pen(HoveredColor))
-                    e.Graphics.DrawRectangle(pen, leftPadding, y, ClientSize.Width - 1 - leftPadding, itemHeight - 1);
+                    using(var pen = new Pen(HoveredColor))
+                        e.Graphics.DrawRectangle(pen, leftPadding, y, ClientSize.Width - 1 - leftPadding, itemHeight - 1);
 
                 using (var brush = new SolidBrush(item.ForeColor != Color.Transparent ? item.ForeColor : ForeColor))
                     e.Graphics.DrawString(item.ToString(), Font, brush, leftPadding, y);
@@ -764,7 +790,7 @@ namespace FastColoredTextBoxNS
         {
             if (DisableWrappingUpDownNavigation)
             {
-            FocussedItemIndex = Math.Max(0, Math.Min(FocussedItemIndex + shift, visibleItems.Count - 1));
+                FocussedItemIndex = Math.Max(0, Math.Min(FocussedItemIndex + shift, visibleItems.Count - 1));
             }
             else
             {
