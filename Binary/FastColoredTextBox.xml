@@ -179,6 +179,41 @@
             Tooltip
             </summary>
         </member>
+        <member name="F:FastColoredTextBoxNS.AutocompleteListView._autoWidth">
+            <summary>
+            Make the menu fit to width of shown items.
+            </summary>
+        </member>
+        <member name="P:FastColoredTextBoxNS.AutocompleteListView.AutoWidthExtraPadding">
+            <summary>
+            If AutoWidth is true, this property specifies extra padding on the right of menu items. Default is 10. Note: AutoWidth should be true to use this property.
+            </summary>
+        </member>
+        <member name="P:FastColoredTextBoxNS.AutocompleteListView.NoSpacingForIcons">
+            <summary>
+            Set to true to remove the padding for icons on the left of the menu
+            </summary>
+        </member>
+        <member name="P:FastColoredTextBoxNS.AutocompleteListView.UseSolidBrushForSelected">
+            <summary>
+            Set to true to use solid brush for selected item. Default is a linear gradient from SelectedColor to a transparent.
+            </summary>
+        </member>
+        <member name="P:FastColoredTextBoxNS.AutocompleteListView.ReShowMenuAfterSelected">
+            <summary>
+            Set to true to show menu again after an item is selected.
+            </summary>
+        </member>
+        <member name="P:FastColoredTextBoxNS.AutocompleteListView.DisableWrappingUpDownNavigation">
+            <summary>
+            Set to false to disable wrapping up/down navigation. If false, user can't navigate from last item to first and back. Default is true.
+            </summary>
+        </member>
+        <member name="P:FastColoredTextBoxNS.AutocompleteListView.ToolTipDuration">
+            <summary>
+            The duration of tooltip showing in milliseconds. Set to 0 to show tooltip indefinitely.
+            </summary>
+        </member>
         <member name="T:FastColoredTextBoxNS.BaseBookmarks">
             <summary>
             Base class for bookmark collection
