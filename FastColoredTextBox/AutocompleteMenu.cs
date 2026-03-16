@@ -760,8 +760,7 @@ namespace FastColoredTextBoxNS
 
             if (string.IsNullOrEmpty(title))
             {
-                toolTip.ToolTipTitle = null;
-                toolTip.SetToolTip(this, null);
+                toolTip.Hide(Parent ?? this);
                 return;
             }
 
