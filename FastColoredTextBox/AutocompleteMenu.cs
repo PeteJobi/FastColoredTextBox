@@ -223,6 +223,10 @@ namespace FastColoredTextBoxNS
         System.Windows.Forms.Timer timer = new System.Windows.Forms.Timer();
 
         internal bool AllowTabKey { get; set; }
+        /// <summary>
+        /// Set to false to disable wrapping up/down navigation. If false, user can't navigate from last item to first and back. Default is true.
+        /// </summary>
+        public bool DisableWrappingUpDownNavigation { get; set; }
         public ImageList ImageList { get; set; }
         internal int AppearInterval { get { return timer.Interval; } set { timer.Interval = value; } }
         internal int ToolTipDuration { get; set; }
@@ -701,7 +705,17 @@ namespace FastColoredTextBoxNS
 
         public void SelectNext(int shift)
         {
+            if (DisableWrappingUpDownNavigation)
+            {
             FocussedItemIndex = Math.Max(0, Math.Min(FocussedItemIndex + shift, visibleItems.Count - 1));
+            }
+            else
+            {
+                var newIndex = FocussedItemIndex + shift;
+                if (newIndex < 0) newIndex = visibleItems.Count - 1;
+                else if (newIndex >= visibleItems.Count) newIndex = 0;
+                FocussedItemIndex = newIndex;
+            }
             DoSelectedVisible();
             //
             Invalidate();
