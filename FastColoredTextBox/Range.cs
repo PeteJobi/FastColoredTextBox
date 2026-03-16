@@ -816,7 +816,8 @@ namespace FastColoredTextBoxNS
                 for (int x = fromX; x <= toX; x++)
                 {
                     Char c = tb[y][x];
-                    c.style |= styleIndex;
+                    if(tb.AllowSeveralTextStyleDrawing) c.style |= styleIndex;
+                    else c.style = styleIndex;
                     tb[y][x] = c;
                 }
             }
