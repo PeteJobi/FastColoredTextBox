@@ -224,6 +224,10 @@ namespace FastColoredTextBoxNS
 
         internal bool AllowTabKey { get; set; }
         /// <summary>
+        /// Set to true to remove the padding for icons on the left of the menu
+        /// </summary>
+        public bool NoSpacingForIcons { get; set; }
+        /// <summary>
         /// Set to true to use solid brush for selected item. Default is a linear gradient from SelectedColor to a transparent.
         /// </summary>
         public bool UseSolidBrushForSelected { get; set; }
@@ -534,7 +538,7 @@ namespace FastColoredTextBoxNS
             startI = Math.Max(startI, 0);
             finishI = Math.Min(finishI, visibleItems.Count);
             int y = 0;
-            int leftPadding = 18;
+            int leftPadding = NoSpacingForIcons ? 0 : 18;
             for (int i = startI; i < finishI; i++)
             {
                 y = i * itemHeight - VerticalScroll.Value;
