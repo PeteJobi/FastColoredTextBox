@@ -79,7 +79,7 @@ namespace FastColoredTextBoxNS
         {
             // create a new popup and add the list view to it 
             AutoClose = false;
-            AutoSize = false;
+            AutoSize = true;
             Margin = Padding.Empty;
             Padding = Padding.Empty;
             BackColor = Color.White;
@@ -223,6 +223,26 @@ namespace FastColoredTextBoxNS
         System.Windows.Forms.Timer timer = new System.Windows.Forms.Timer();
 
         internal bool AllowTabKey { get; set; }
+
+        /// <summary>
+        /// Make the menu fit to width of shown items.
+        /// </summary>
+        private bool _autoWidth;
+        public bool AutoWidth
+        {
+            get => _autoWidth;
+            set
+            {
+                _autoWidth = value;
+                MaximumSize = new Size(_autoWidth ? 1000 : Size.Width, MaximumSize.Height);
+            }
+        }
+
+        /// <summary>
+        /// If AutoWidth is true, this property specifies extra padding on the right of menu items. Default is 10. Note: AutoWidth should be true to use this property.
+        /// </summary>
+        public int AutoWidthExtraPadding { get; set; } = 10;
+
         /// <summary>
         /// Set to true to remove the padding for icons on the left of the menu
         /// </summary>
@@ -406,6 +426,7 @@ namespace FastColoredTextBoxNS
             visibleItems.Clear();
             FocussedItemIndex = 0;
             VerticalScroll.Value = 0;
+            biggestTextWidth = 0;
             //some magic for update scrolls
             AutoScrollMinSize -= new Size(1, 0);
             AutoScrollMinSize += new Size(1, 0);
@@ -532,6 +553,8 @@ namespace FastColoredTextBoxNS
             oldItemCount = visibleItems.Count;
         }
 
+        private int biggestTextWidth;
+        private bool widthChanged;
         protected override void OnPaint(PaintEventArgs e)
         {
             AdjustScroll();
@@ -571,6 +594,23 @@ namespace FastColoredTextBoxNS
 
                 using (var brush = new SolidBrush(item.ForeColor != Color.Transparent ? item.ForeColor : ForeColor))
                     e.Graphics.DrawString(item.ToString(), Font, brush, leftPadding, y);
+
+                if (!AutoWidth) continue;
+                var textSize = e.Graphics.MeasureString(item.ToString(), Font, new SizeF(500, 500));
+                if ((int)textSize.Width > biggestTextWidth)
+                {
+                    biggestTextWidth = (int)textSize.Width;
+                    widthChanged = true;
+                }
+            }
+
+            if (!widthChanged) return;
+            widthChanged = false;
+            Width = leftPadding + biggestTextWidth + AutoWidthExtraPadding + (VScroll ? SystemInformation.VerticalScrollBarWidth : 0);
+            if(toBeUsedInOnPaint != null)
+            {
+                SetToolTip(toBeUsedInOnPaint); //Adjust tooltip position after width change
+                toBeUsedInOnPaint = null;
             }
         }
 
@@ -753,6 +793,8 @@ namespace FastColoredTextBoxNS
             AutoScrollMinSize += new Size(1, 0);
         }
 
+        private AutocompleteItem toBeUsedInOnPaint;
+
         private void SetToolTip(AutocompleteItem autocompleteItem)
         {
             var title = autocompleteItem.ToolTipTitle;
@@ -761,6 +803,7 @@ namespace FastColoredTextBoxNS
             if (string.IsNullOrEmpty(title))
             {
                 toolTip.Hide(Parent ?? this);
+                toBeUsedInOnPaint = null;
                 return;
             }
 
@@ -773,6 +816,7 @@ namespace FastColoredTextBoxNS
                     location = new Point(Right + 5, 0);
                 else
                     location = new Point(Left - 105 - MaximumSize.Width, 0);
+                toBeUsedInOnPaint = autocompleteItem;
 
                 if (string.IsNullOrEmpty(text))
                 {
